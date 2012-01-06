@@ -26,7 +26,7 @@ def find_layout(filepath):
     fullpath = os.path.abspath(filepath)
     while fullpath != '/':
         base = os.path.dirname(fullpath)
-        layout = os.path.join(base, '_layout/layout.html')
+        layout = os.path.join(base, '_layout', 'layout.html')
         if os.path.exists(layout):
             return layout
         fullpath = base
@@ -40,19 +40,25 @@ def find_root(filepath):
         root = os.path.join(dirname, '_root')
         if os.path.exists(root):
             return dirname
-        fullpath = base
+        fullpath = dirname
     return None
 
 
 def compile(filename):
+    print "Compile %s" % filename
     root = find_root(filename)
+    print "Root is %s" % root
     layout = find_layout(filename)
-    jinja2_env = Environment(loader=FileSystemLoader(root))
+    layout = layout.replace(root, '')
+    layout = layout.lstrip('/')
+    print "layout is %s" % layout
+    env = Environment(loader=FileSystemLoader(root))
     out_file = open(filename.replace('.md', '.html'), 'w+')
     in_file = open(filename)
     html = markdown.markdown(in_file.read())
-    template = Template(layout_file.read())
-    out_file.write(html)
+    template = env.get_template(layout)
+    final = template.render(html=html)
+    out_file.write(final)
     out_file.close()
     in_file.close()
 
