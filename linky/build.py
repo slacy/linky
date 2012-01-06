@@ -1,6 +1,6 @@
 import os
 import markdown
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 from nltk.util import bigrams
 
 # Recursively find all text files
@@ -176,7 +176,6 @@ class Preprocessor(object):
                 new_gram = Gram(raw_gram, filename, offset)
                 self.all_grams.add(new_gram)
 
-
     def trim_grams(self):
         """trim_grams"""
         for gram_parts in self.all_grams.by_parts.keys():
@@ -184,7 +183,6 @@ class Preprocessor(object):
             unique_files = set([gram.filename for gram in grams])
             if len(unique_files) <= 1:
                 self.all_grams.remove(grams)
-
 
     def joinup(self, filename):
         """joinup"""
@@ -199,7 +197,6 @@ class Preprocessor(object):
 
         return did_join
 
-
     def compile(self, filename):
         """compile"""
         root = find_root(filename)
@@ -212,25 +209,26 @@ class Preprocessor(object):
         # Now, given grams in self.all_grams, linkify them
         print filename
         new_content = self.content[filename]
-        for backlink in sorted(self.all_grams.backlinks(filename), key=lambda x: x.offset):
+        for backlink in sorted(self.all_grams.backlinks(filename),
+                               key=lambda x: x.offset):
             print backlink
             where = self.content[filename].find(backlink.string())
             print where
             print filename
             print backlink.filename
-            relative = os.path.relpath(backlink.filename, os.path.dirname(filename))
+            relative = os.path.relpath(backlink.filename,
+                                       os.path.dirname(filename))
+            relative = relative.replace('.md', '.html')
             new_content = new_content.replace(
                 backlink.string(),
                 '[' + backlink.string() + '](' + relative + ')', 1)
         self.content[filename] = new_content
-
 
         html = markdown.markdown(self.content[filename])
         template = env.get_template(layout)
         final = template.render(html=html)
         out_file.write(final)
         out_file.close()
-
 
 
 def main():
