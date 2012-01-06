@@ -1,4 +1,4 @@
-git+https://github.com/pinard/Pymacs.git
+-e git+https://github.com/pinard/Pymacs.git#egg=Pymacs
 pep8
 pyflakes
 pylint
