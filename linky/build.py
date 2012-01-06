@@ -27,6 +27,7 @@ class Gram(object):
         return "%s %s %s" % (self.parts, self.filename, self.offset)
 
     def can_join(self, other):
+        """can_join"""
         if other.filename != self.filename:
             return False
         if (other.offset > self.offset
@@ -52,7 +53,6 @@ class Gram(object):
         return Gram(new_parts, first.filename, first.offset)
 
 
-
 class GramSet(object):
     """GramSet"""
     def __init__(self):
@@ -70,6 +70,15 @@ class GramSet(object):
         if gram.parts not in self.by_parts:
             self.by_parts[gram.parts] = []
         self.by_parts[gram.parts].append(gram)
+
+    def backlinks(self, filename):
+        """backlinks"""
+        backlinks = []
+        for gram in self.by_filename[filename]:
+            for match in self.by_parts[gram.parts]:
+                if match.filename != filename:
+                    backlinks.append(match)
+        return backlinks
 
     def remove(self, gram_list):
         """remove"""
@@ -199,12 +208,24 @@ class Preprocessor(object):
         layout = layout.lstrip('/')
         env = Environment(loader=FileSystemLoader(root))
         out_file = open(filename.replace('.md', '.html'), 'w+')
+
+        # Now, given grams in self.all_grams, linkify them
+        print filename
+        new_content = self.content[filename]
+        for backlink in sorted(self.all_grams.backlinks(filename), key=lambda x: x.offset):
+            print backlink
+            where = self.content[filename].find(backlink.string())
+            print where
+            print filename
+            print backlink.filename
+            relative = os.path.relpath(backlink.filename, os.path.dirname(filename))
+            new_content = new_content.replace(
+                backlink.string(),
+                '[' + backlink.string() + '](' + relative + ')', 1)
+        self.content[filename] = new_content
+
+
         html = markdown.markdown(self.content[filename])
-
-        joined = self.joinup(filename)
-        while joined:
-            joined = self.joinup(filename)
-
         template = env.get_template(layout)
         final = template.render(html=html)
         out_file.write(final)
@@ -220,6 +241,11 @@ def main():
     for filename in corpus:
         pre.process(filename)
     pre.trim_grams()
+
+    for filename in corpus:
+        joined = pre.joinup(filename)
+        while joined:
+            joined = pre.joinup(filename)
 
     for filename in corpus:
         pre.compile(filename)
