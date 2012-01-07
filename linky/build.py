@@ -211,11 +211,7 @@ class Preprocessor(object):
         new_content = self.content[filename]
         for backlink in sorted(self.all_grams.backlinks(filename),
                                key=lambda x: x.offset):
-            print backlink
             where = self.content[filename].find(backlink.string())
-            print where
-            print filename
-            print backlink.filename
             relative = os.path.relpath(backlink.filename,
                                        os.path.dirname(filename))
             relative = relative.replace('.md', '.html')
