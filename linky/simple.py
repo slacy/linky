@@ -35,7 +35,7 @@ def find_layout(filepath):
     fullpath = os.path.abspath(filepath)
     while fullpath != '/':
         base = os.path.dirname(fullpath)
-        layout = os.path.join(base, '_layout', 'layout.html')
+        layout = os.path.join(base, '_layout')
         if os.path.exists(layout):
             return layout
         fullpath = base
@@ -58,14 +58,16 @@ class Preprocessor(object):
     """Preprocessor"""
 
     def __init__(self):
-        self.content = {}
+        pass
+
+    def preprocess(self, filename):
+        pass
 
     def compile(self, filename):
         """compile"""
 
         print "compiling %s" % filename
         root = find_root(filename)
-        print "root is %s" % root
         env = Environment(loader=FileSystemLoader(root),
                           extensions=[MarkdownExtension])
         out_filename = filename.replace('.jinja2', '.html')
@@ -84,6 +86,9 @@ def main():
     corpus = find_corpus(os.curdir, '.jinja2')
 
     pre = Preprocessor()
+
+    for filename in corpus:
+        pre.preprocess(filename)
 
     for filename in corpus:
         pre.compile(filename)
