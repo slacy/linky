@@ -3,7 +3,7 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 
-from linky.markdown import MarkdownExtension
+from linky.extensions import MarkdownExtension
 
 
 # Recursively find all text files
