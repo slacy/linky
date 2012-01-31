@@ -2,7 +2,7 @@
 import simplejson
 import markdown2
 from jinja2.ext import Extension
-from jinja2.nodes import CallBlock, Const
+from jinja2 import nodes
 
 
 class MarkdownExtension(Extension):
@@ -19,7 +19,7 @@ class MarkdownExtension(Extension):
             ['name:endmarkdown'],
             drop_needle=True
         )
-        return CallBlock(
+        return nodes.CallBlock(
             self.call_method('_markdown_support'),
             [],
             [],
@@ -29,6 +29,39 @@ class MarkdownExtension(Extension):
     def _markdown_support(self, caller):
         """WAT"""
         return self.environment.markdowner.convert(caller()).strip()
+
+
+class LinkExtension(Extension):
+    """A link tag for Jinja2"""
+    tags = set(['link'])
+
+    def parse(self, parser):
+        stream = parser.stream
+        tag = stream.next()
+
+        args = []
+        while not parser.stream.current.test_any('block_end'):
+            args.append(parser.parse_expression())
+
+        make_call_node = lambda: self.call_method(
+            '_link_support', args=args)
+
+        return nodes.Output([make_call_node()]).set_lineno(tag.lineno)
+
+    def _link_support(self, page_title):
+        """WAT"""
+        if self.environment.pre_process:
+            return page_title
+
+        inbound = None
+        for template, meta in self.environment.metamap.iteritems():
+            if 'inbound' in meta and page_title in meta['inbound']:
+                inbound = template
+
+        if not inbound:
+            raise Exception("Can't find inbound link for '%s'" % page_title)
+        return "<Link to %s titled %s>" % (inbound, page_title)
+
 
 
 class MetaExtension(Extension):
@@ -46,8 +79,8 @@ class MetaExtension(Extension):
             ['name:endmeta'],
             drop_needle=True
         )
-        args = [Const(parser.name)]
-        return CallBlock(
+        args = [nodes.Const(parser.name)]
+        return nodes.CallBlock(
             self.call_method('_meta_support', args),
             [],
             [],

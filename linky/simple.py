@@ -3,7 +3,7 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 
-from linky.extensions import MarkdownExtension, MetaExtension
+from linky.extensions import MarkdownExtension, MetaExtension, LinkExtension
 
 # Recursively find all text files
 # Process files into lists of words
@@ -64,8 +64,9 @@ class Preprocessor(object):
         if root in self.env_map:
             return self.env_map[root]
 
-        env = Environment(loader=FileSystemLoader(root),
-                          extensions=[MarkdownExtension, MetaExtension])
+        env = Environment(
+            loader=FileSystemLoader(root),
+            extensions=[MarkdownExtension, MetaExtension, LinkExtension])
         self.env_map[root] = env
         return env
 
@@ -75,6 +76,7 @@ class Preprocessor(object):
     def preprocess(self, filename):
         print "preprocess %s" % filename
         template_relative = filename.replace(self.root(filename), '')
+        self.env(filename).pre_process = True
         template = self.env(filename).get_template(template_relative)
         template.render()
 
@@ -87,6 +89,7 @@ class Preprocessor(object):
         # html = open(filename, 'r').read()
 
         template_relative = filename.replace(self.root(filename), '')
+        self.env(filename).pre_process = False
         template = self.env(filename).get_template(template_relative)
         final = template.render()
         out_file.write(final)
