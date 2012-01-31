@@ -3,8 +3,7 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 
-from linky.extensions import MarkdownExtension
-
+from linky.extensions import MarkdownExtension, MetaExtension
 
 # Recursively find all text files
 # Process files into lists of words
@@ -57,25 +56,38 @@ def find_root(filepath):
 class Preprocessor(object):
     """Preprocessor"""
 
+    def root(self, filename):
+        return find_root(filename)
+
+    def env(self, filename):
+        root = self.root(filename)
+        if root in self.env_map:
+            return self.env_map[root]
+
+        env = Environment(loader=FileSystemLoader(root),
+                          extensions=[MarkdownExtension, MetaExtension])
+        self.env_map[root] = env
+        return env
+
     def __init__(self):
-        pass
+        self.env_map = {}
 
     def preprocess(self, filename):
-        pass
+        print "preprocess %s" % filename
+        template_relative = filename.replace(self.root(filename), '')
+        template = self.env(filename).get_template(template_relative)
+        template.render()
 
     def compile(self, filename):
         """compile"""
 
         print "compiling %s" % filename
-        root = find_root(filename)
-        env = Environment(loader=FileSystemLoader(root),
-                          extensions=[MarkdownExtension])
         out_filename = filename.replace('.jinja2', '.html')
         out_file = open(out_filename, 'w+')
         # html = open(filename, 'r').read()
 
-        template_relative = filename.replace(root, '')
-        template = env.get_template(template_relative)
+        template_relative = filename.replace(self.root(filename), '')
+        template = self.env(filename).get_template(template_relative)
         final = template.render()
         out_file.write(final)
         out_file.close()
@@ -89,6 +101,10 @@ def main():
 
     for filename in corpus:
         pre.preprocess(filename)
+
+    for root, env in pre.env_map.iteritems():
+        print root
+        print env.metamap
 
     for filename in corpus:
         pre.compile(filename)
