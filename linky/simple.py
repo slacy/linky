@@ -20,7 +20,8 @@ def find_corpus(root, suffix):
     def visit(_found, dirname, names):
         """visit"""
         new = [os.path.abspath(os.path.join(dirname, fn))
-               for fn in names if fn.endswith(suffix)]
+               for fn in names if (
+                fn.endswith(suffix) and not fn.startswith('.'))]
         _found += new
 
     found_files = []
@@ -74,11 +75,10 @@ class Preprocessor(object):
         self.env_map = {}
 
     def preprocess(self, filename):
-        print "preprocess %s" % filename
         template_relative = filename.replace(self.root(filename), '')
         self.env(filename).pre_process = True
         template = self.env(filename).get_template(template_relative)
-        template.render()
+        template.render(ROOT=self.root(filename))
 
     def compile(self, filename):
         """compile"""
@@ -91,7 +91,7 @@ class Preprocessor(object):
         template_relative = filename.replace(self.root(filename), '')
         self.env(filename).pre_process = False
         template = self.env(filename).get_template(template_relative)
-        final = template.render()
+        final = template.render(ROOT=self.root(filename))
         out_file.write(final)
         out_file.close()
 
@@ -104,10 +104,6 @@ def main():
 
     for filename in corpus:
         pre.preprocess(filename)
-
-    for root, env in pre.env_map.iteritems():
-        print root
-        print env.metamap
 
     for filename in corpus:
         pre.compile(filename)

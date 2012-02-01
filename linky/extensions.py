@@ -40,7 +40,7 @@ class LinkExtension(Extension):
         stream = parser.stream
         tag = stream.next()
 
-        args = [nodes.Const(parser.name)]
+        args = [nodes.Const(parser.name), nodes.Name('ROOT', 'load')]
         while not parser.stream.current.test_any('block_end'):
             args.append(parser.parse_expression())
 
@@ -49,7 +49,7 @@ class LinkExtension(Extension):
 
         return nodes.Output([make_call_node()]).set_lineno(tag.lineno)
 
-    def _link_support(self, this_page, page_title):
+    def _link_support(self, this_page, root, page_title):
         """WAT"""
 
         if self.environment.pre_process:
@@ -63,12 +63,13 @@ class LinkExtension(Extension):
         if not inbound:
             raise Exception("Can't find inbound link for '%s'" % page_title)
 
-        (inbound_dir, inbound_file) = os.path.split(inbound)
-        (this_dir, _this_file) = os.path.split(this_page)
-        relative_dir = os.path.relpath(inbound_dir, this_dir)
-        relative_filename = os.path.join(relative_dir, inbound_file)
+        # (inbound_dir, inbound_file) = os.path.split(inbound)
+        # (this_dir, _this_file) = os.path.split(this_page)
+        # relative_dir = os.path.relpath(inbound_dir, this_dir)
+        # relative_filename = os.path.join(relative_dir, inbound_file)
+        absolute_filename = os.path.join(root, inbound.strip('/'))
 
-        href = relative_filename.replace(".jinja2", ".html")
+        href = absolute_filename.replace(".jinja2", ".html")
         result = '<a href="%s">%s</a>' % (href, page_title)
         return result
 
