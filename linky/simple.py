@@ -3,7 +3,7 @@ import os
 
 from jinja2 import Environment, FileSystemLoader
 
-from linky.extensions import MarkdownExtension, MetaExtension, LinkExtension
+from linky.extensions import MarkdownExtension, MetaExtension, LinkExtension, FileExtension
 
 # Recursively find all text files
 # Process files into lists of words
@@ -67,7 +67,7 @@ class Preprocessor(object):
 
         env = Environment(
             loader=FileSystemLoader(root),
-            extensions=[MarkdownExtension, MetaExtension, LinkExtension])
+            extensions=[MarkdownExtension, MetaExtension, LinkExtension, FileExtension])
         self.env_map[root] = env
         return env
 
