@@ -106,12 +106,6 @@ class FileExtension(Extension):
         (target_dir, target_file) = os.path.split(target_full)
         (this_dir, this_file) = os.path.split(this_template)
 
-        print "---"
-        print "ROOT: %s" % root
-        print "TARGET FULL: %s" % (target_full)
-        print "TARGET: %s/%s" % (target_dir, target_file)
-        print "THIS: %s/%s" % (this_dir, this_file)
-
         relative_dir = os.path.relpath(target_dir, this_dir)
         relative_filename = os.path.join(relative_dir, target_file)
 
