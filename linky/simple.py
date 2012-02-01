@@ -74,24 +74,25 @@ class Preprocessor(object):
     def __init__(self):
         self.env_map = {}
 
-    def preprocess(self, filename):
+    def render(self, filename):
         template_relative = filename.replace(self.root(filename), '')
-        self.env(filename).pre_process = True
         template = self.env(filename).get_template(template_relative)
-        template.render(ROOT=self.root(filename))
+        return template.render(ROOT=self.root(filename),
+                               TEMPLATE=filename)
+
+    def preprocess(self, filename):
+        self.env(filename).pre_process = True
+        self.render(filename)
 
     def compile(self, filename):
         """compile"""
-
         print "compiling %s" % filename
         out_filename = filename.replace('.jinja2', '.html')
         out_file = open(out_filename, 'w+')
         # html = open(filename, 'r').read()
 
-        template_relative = filename.replace(self.root(filename), '')
         self.env(filename).pre_process = False
-        template = self.env(filename).get_template(template_relative)
-        final = template.render(ROOT=self.root(filename))
+        final = self.render(filename)
         out_file.write(final)
         out_file.close()
 
